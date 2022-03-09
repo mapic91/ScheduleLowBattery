@@ -35,5 +35,13 @@ public class LowBatteryWorker extends Worker {
         return Result.success();
     }
 
+    @Override
+    public void onStopped() {
+        super.onStopped();
+        if(MainActivity.isStarted) {
+            //stoped by system, restart
+            MainActivity.StartLowBatteryWorker(getApplicationContext());
+        }
+    }
 }
 

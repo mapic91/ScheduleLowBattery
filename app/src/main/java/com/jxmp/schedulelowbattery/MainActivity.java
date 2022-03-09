@@ -6,7 +6,6 @@ import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
 
 import android.provider.Settings;
 import android.text.SpannableString;
@@ -15,8 +14,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -25,12 +22,8 @@ import android.widget.TextView;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-import java.time.Duration;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     static int openMinute = DEFAULT_OPEN_MINUTE;
     static int closeHour = DEFAULT_CLOSE_HOUR;
     static int closeMinute = DEFAULT_CLOSE_MINUTE;
+    static boolean isStarted = false;
 
     Timer timer;
     TimerTask task;
@@ -177,6 +171,8 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isStarted = true;
+                SaveStartedSettings();
                 StartLowBatteryWorker(context);
             }
         });
@@ -184,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
         stopBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isStarted = false;
+                SaveStartedSettings();
                 CancleWorker(context);
             }
         });
@@ -229,6 +227,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void SaveStartedSettings()
+    {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("isStarted", isStarted);
+        editor.apply();
+    }
+
     private void SaveSettings() {
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -246,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("openMinute", openMinute);
         editor.putInt("closeHour", closeHour);
         editor.putInt("closeMinute", closeMinute);
+        editor.putBoolean("isStarted", isStarted);
         editor.apply();
         CancleWorker(getApplicationContext());
     }
@@ -256,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
         openMinute = sharedPref.getInt("openMinute", DEFAULT_OPEN_MINUTE);
         closeHour = sharedPref.getInt("closeHour", DEFAULT_CLOSE_HOUR);
         closeMinute = sharedPref.getInt("closeMinute", DEFAULT_CLOSE_MINUTE);
+        isStarted = sharedPref.getBoolean("isStarted", false);
 
         RefreshUI();
     }
